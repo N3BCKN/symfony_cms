@@ -5,16 +5,27 @@ namespace App\Entity;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Symfony\Component\Validator\Constraints as Assert;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\UserInterface;
+use App\Entity\ProtectedRoutesInterface;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\BlogPostRepository")
  * @ApiResource(
  *  itemOperations={"get"},
- *  collectionOperations={"get"}
+ *  collectionOperations={
+ *     "get", 
+ *     "post"={
+ *         "access_control"="is_granted('IS_AUTHENTICATED_FULLY')"
+ *     },
+ *    "put"={
+ *        "access_control"="is_granted('ROLE_EDITOR') or (is_granted('ROLE_WRITER') and object.getAuthor() == user)"
+ *     }
+ * }
  * )
  */
-class BlogPost
+class BlogPost implements PublishedDateEntityInterface, ProtectedRoutesInterface
 {
     /**
      * @ORM\Id()
@@ -25,6 +36,8 @@ class BlogPost
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Assert\NotBlank()
+     * @Assert\Length(min=10)
      */
     private $title;
 
@@ -35,6 +48,8 @@ class BlogPost
 
     /**
      * @ORM\Column(type="text")
+     * @Assert\NotBlank()
+     * @Assert\Length(min=20)
      */
     private $content;
 
@@ -56,6 +71,7 @@ class BlogPost
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
+     * @Assert\NotBlank()
      */
     private $slug;
 
@@ -81,10 +97,9 @@ class BlogPost
         return $this->published;
     }
 
-    public function setPublished(\DateTimeInterface $published): self
+    public function setPublished(\DateTimeInterface $published): PublishedDateEntityInterface
     {
         $this->published = $published;
-
         return $this;
     }
 
@@ -126,7 +141,7 @@ class BlogPost
     /**
      * @param User $author
      */
-    public function setAuthor(User $author): self
+    public function setAuthor(UserInterface $author): ProtectedRoutesInterface
     {
         $this->author = $author;
 

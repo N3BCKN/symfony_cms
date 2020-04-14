@@ -3,16 +3,27 @@
 namespace App\Entity;
 
 use ApiPlatform\Core\Annotation\ApiResource;
+use App\Entity\ProtectedRoutesInterface;
+use App\Entity\PublishedDateEntityInterface;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
  * @ApiResource(
  *  itemOperations={"get"},
- *  collectionOperations={"get"}
+ *  collectionOperations={
+ *     "get", 
+ *     "post"={
+ *         "access_control"="is_granted('IS_AUTHENTICATED_FULLY')"
+ *     },
+ *    "put"={
+ *        "access_control"="is_granted('ROLE_EDITOR') or (is_granted('ROLE_WRITER') and object.getAuthor() == user)"
+ *     }
+ * }
  * )
  * @ORM\Entity(repositoryClass="App\Repository\CommentRepository")
  */
-class Comment
+class Comment implements ProtectedRoutesInterface, PublishedDateEntityInterface
 {
     /**
      * @ORM\Id()
@@ -65,7 +76,7 @@ class Comment
         return $this->published;
     }
 
-    public function setPublished(\DateTimeInterface $published): self
+    public function setPublished(\DateTimeInterface $published): PublishedDateEntityInterface
     {
         $this->published = $published;
 
@@ -83,7 +94,7 @@ class Comment
     /**
      * @param User $author
      */
-    public function setAuthor(User $author): self
+    public function setAuthor(UserInterface $author): ProtectedRoutesInterface
     {
         $this->author = $author;
 
