@@ -3,13 +3,32 @@
 namespace App\DataFixtures;
 
 use App\Entity\BlogPost;
+use App\Entity\Comment;
 use App\Entity\User;
 use DateTime;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\Persistence\ObjectManager;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 class AppFixtures extends Fixture
 {
+    /**
+     * @var UserPasswordEncoderInterface
+     */
+    private $passwordEncoder;
+
+    /**
+     * @var Faker\Factory
+     */
+    private $faker;
+
+
+    public function __construct(UserPasswordEncoderInterface $passwordEncoder)
+    {
+      $this->passwordEncoder = $passwordEncoder;   
+      $this->faker = \Faker\Factory::create();
+    }
+
     public function load(ObjectManager $manager)
     {
         $this->loadUsers($manager);
@@ -22,7 +41,10 @@ class AppFixtures extends Fixture
         $user->setUsername("j.Doe");
         $user->setEmail("john.doe@gmail.com");
         $user->setName("John Doe");
-        $user->setPassword("secret123!@#");
+        $user->setPassword($this->passwordEncoder->encodePassword(
+          $user,
+          'secret123#@!'
+        ));
 
         $this->addReference('user_admin',$user);
 
@@ -34,26 +56,17 @@ class AppFixtures extends Fixture
 
         $user = $this->getReference('user_admin');
 
-        for($i = 0; $i < 20; $i++){
+        for($i = 0; $i < 50; $i++){
 
             $blogPost = new BlogPost();
             $randomID = rand(1, 500);
-            $blogPost-> setTitle("Blog Post title number: ". $randomID );
-            $blogPost-> setContent("Lorem ipsum dolor sit amet, consectetur adipiscing elit, 
-            sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut consequat semper viverra 
-            nam libero justo laoreet. Odio ut sem nulla pharetra diam sit amet nisl suscipit. Ultricies 
-            lacus sed turpis tincidunt id aliquet risus feugiat in. Interdum varius sit amet mattis 
-            vulputate enim nulla aliquet porttitor. Turpis nunc eget lorem dolor sed viverra ipsum nunc 
-            aliquet. Mattis vulputate enim nulla aliquet porttitor. Nec ullamcorper sit amet risus nullam 
-            eget felis eget nunc. Molestie a iaculis at erat pellentesque adipiscing commodo elit. 
-            Dignissim cras tincidunt lobortis feugiat vivamus at. Ullamcorper velit sed ullamcorper morbi. 
-            Vulputate dignissim suspendisse in est ante in nibh mauris cursus. 
-            Aenean et tortor at risus viverra adipiscing. Diam ut venenatis tellus in metus. 
-            Aliquet bibendum enim facilisis gravida neque convallis. Nisl tincidunt eget nullam non nisi est 
-            sit amet. Tristique senectus et netus et malesuada fames. Diam maecenas sed enim ut sem viverra.");
+            $blogPost-> setTitle($this->faker->realText(40));
+            $blogPost-> setContent($this->faker->realText(350));
             $blogPost->setAuthor($user);
-            $blogPost->setPublished(new DateTime('now'));
-            $blogPost->setSlug("blog-post-title-number-".$randomID);
+            $blogPost->setPublished($this->faker->dateTimeThisYear);
+            $blogPost->setSlug($this->faker->slug);
+
+            $this->setReference("blog_post_$i", $blogPost);
             
             $manager->persist($blogPost);
             }
@@ -62,6 +75,21 @@ class AppFixtures extends Fixture
     }
 
     public function loadComments(ObjectManager $manager){
+            
+            for($i = 0; $i < 50; $i++){
+                for($j = 0; $j < rand(1,10); $j++){
+                    $comment = new Comment();
+                    $comment -> setContent($this->faker->realText(60));
+                    $comment -> setPublished($this->faker->dateTimeThisYear);
+                    $comment -> setAuthor($this->getReference('user_admin'));
+                    $comment -> setBlogPost($this->getReference("blog_post_$i"));
+                    
 
+                    $manager->persist($comment);
+
+                }
+            }
+
+            $manager->flush();  
     }
 }
