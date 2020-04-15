@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Core\Annotation\ApiSubresource;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -64,16 +66,25 @@ class BlogPost implements PublishedDateEntityInterface, ProtectedRoutesInterface
      */
     private $comments;
 
-    public function __construct()
-    {
-        $this->comments = new ArrayCollection();
-    }
-
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      * @Assert\NotBlank()
      */
     private $slug;
+
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\Image")
+     * @ORM\JoinTable()
+     * @ApiSubresource()
+     * @Groups({"post"})
+     */
+    private $images;
+
+    public function __construct()
+    {
+        $this->comments = new ArrayCollection();
+        $this->images = new ArrayCollection();
+    }
 
     public function getId()
     {
@@ -146,5 +157,20 @@ class BlogPost implements PublishedDateEntityInterface, ProtectedRoutesInterface
         $this->author = $author;
 
         return $this;
+    }
+
+    public function getImages(): Collection
+    {
+        return $this->images;
+    }
+
+    public function setImage(Image $image): void
+    {
+        $this->images->add($image);
+    }
+
+    public function removeImage(Image $image): void
+    {
+        $this->images->removeElement($image);
     }
 }
