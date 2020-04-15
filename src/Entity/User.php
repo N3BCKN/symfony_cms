@@ -38,8 +38,17 @@ use Symfony\Component\Validator\Constraints as Assert;
  *             "validation_groups"={"put-reset-password"}
  *       }
  *  },
- *  collectionOperations={"post"},
- *  normalizationContext={"groups"={"read"}}
+ *  collectionOperations={
+ *         "post"={
+ *             "denormalization_context"={
+ *                 "groups"={"post"}
+ *             },
+ *             "normalization_context"={
+ *                 "groups"={"get"}
+ *             },
+ *             "validation_groups"={"post"}
+ *         }
+ *     },
  * )
  * @ORM\Entity(repositoryClass="App\Repository\UserRepository")
  * @UniqueEntity("username")
