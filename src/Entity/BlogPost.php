@@ -3,7 +3,12 @@
 namespace App\Entity;
 
 use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Core\Annotation\ApiFilter;
 use ApiPlatform\Core\Annotation\ApiSubresource;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\DateFilter;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\RangeFilter;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\OrderFilter;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -14,6 +19,30 @@ use App\Entity\ProtectedRoutesInterface;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\BlogPostRepository")
+ * @ApiFilter(
+ *     SearchFilter::class,
+ *     properties={
+ *         "id": "exact",
+ *         "title": "partial",
+ *         "content": "partial",
+ *         "author": "exact"
+ *     }
+ * )
+ * @ApiFilter(
+ *      DateFilter::class,
+ *      properties={
+ *          "published"
+ *      }
+ * )
+ * @ApiFilter(
+ *      RangeFilter::class,
+ *      properties={"id"}
+ * )
+ * @ApiFilter(
+ *      OrderFilter::class,
+ *      properties={"id", "published", "title"},
+ *      arguments={"orderParameterName"="_order"}
+ * )
  * @ApiResource(
  *  itemOperations={"get"},
  *  collectionOperations={

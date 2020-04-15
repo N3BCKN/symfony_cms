@@ -10,6 +10,9 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
  * @ApiResource(
+ *  attributes={
+ *      "order"={"published": "DESC"} 
+ * },
  *  itemOperations={"get"},
  *  collectionOperations={
  *     "get", 
